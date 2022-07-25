@@ -16,11 +16,11 @@ if len(sys.argv) < 2:
 
 sf = sys.argv[1]
 num_partitions_dict = {
-    'part': 1,
+    'part': 7,
     'supplier': 1,
-    'customer': 1,
+    'customer': 4,
     'date': 1,
-    'lineorder': 32
+    'lineorder': 800
 }
 
 
