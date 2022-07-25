@@ -41,9 +41,6 @@ add_library(fpdb-tuple STATIC
         src/arrow/ArrowAWSInputStream.cpp include/fpdb/tuple/arrow/ArrowAWSInputStream.h
         src/arrow/ArrowAWSGZIPInputStream.cpp include/fpdb/tuple/arrow/ArrowAWSGZIPInputStream.h
         src/arrow/ArrowAWSGZIPInputStream2.cpp include/fpdb/tuple/arrow/ArrowAWSGZIPInputStream2.h
-        src/arrow/CSVToArrowSIMDStreamParser.cpp include/fpdb/tuple/arrow/CSVToArrowSIMDStreamParser.h
-        src/arrow/SIMDParserHelpers.cpp include/fpdb/tuple/arrow/SIMDParserHelpers.h
-        src/arrow/CSVToArrowSIMDChunkParser.cpp include/fpdb/tuple/arrow/CSVToArrowSIMDChunkParser.h
         src/serialization/ArrowSerializer.cpp include/fpdb/tuple/serialization/ArrowSerializer.h
         include/fpdb/tuple/serialization/TupleKeyElementSerializer.h
         include/fpdb/tuple/serialization/FileReaderSerializer.h)

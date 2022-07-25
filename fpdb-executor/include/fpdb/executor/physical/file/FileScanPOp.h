@@ -9,7 +9,6 @@
 #include <fpdb/executor/message/CompleteMessage.h>
 #include <fpdb/executor/message/ScanMessage.h>
 #include <fpdb/executor/message/cache/LoadResponseMessage.h>
-#include <fpdb/tuple/arrow/CSVToArrowSIMDChunkParser.h>
 
 #include <string>
 
@@ -44,6 +43,7 @@ private:
   void requestStoreSegmentsInCache(const std::shared_ptr<TupleSet> &tupleSet);
   void readAndSendTuples(const std::vector<std::string> &columnNames);
   std::shared_ptr<TupleSet> readTuples();
+  std::shared_ptr<TupleSet> readCSVFile(std::shared_ptr<arrow::io::ReadableFile> &arrowInputStream);
 
   bool scanOnStart_;
   std::string filePath_;

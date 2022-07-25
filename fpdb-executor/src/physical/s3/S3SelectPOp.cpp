@@ -80,23 +80,6 @@ std::string S3SelectPOp::getTypeString() const {
   return "S3SelectPOp";
 }
 
-#ifdef __AVX2__
-std::shared_ptr<CSVToArrowSIMDChunkParser> S3SelectPOp::generateSIMDCSVParser() {
-  std::vector<std::shared_ptr<::arrow::Field>> fields;
-  for (auto const &columnName: getProjectColumnNames()) {
-    fields.emplace_back(table_->getSchema()->GetFieldByName(columnName));
-  }
-  // The delimiter for S3 output is always ',' so this is hardcoded
-  // FIXME: temporary fix of "parseChunkSize < payload size" issue on Airmettle Select
-  auto conversionBufferSize = (awsClient_->getAwsConfig()->getS3ClientType() != AIRMETTLE) ?
-                              DefaultS3ConversionBufferSize : DefaultS3ConversionBufferSizeAirmettleSelect;
-  auto simdParser = std::make_shared<CSVToArrowSIMDChunkParser>(name(), conversionBufferSize,
-                                                                std::make_shared<::arrow::Schema>(fields),
-                                                                std::make_shared<::arrow::Schema>(fields),
-                                                                ',');
-  return simdParser;
-}
-#endif
 std::shared_ptr<S3CSVParser> S3SelectPOp::generateCSVParser() {
   std::vector<std::shared_ptr<::arrow::Field>> fields;
   for (auto const &columnName: getProjectColumnNames()) {
@@ -143,11 +126,8 @@ bool S3SelectPOp::scanRangeSupported() {
 
 std::shared_ptr<TupleSet> S3SelectPOp::s3Select(uint64_t startOffset, uint64_t endOffset) {
   // Create the necessary parser
-#ifdef __AVX2__
-  auto simdParser = generateSIMDCSVParser();
-#else
   auto parser = generateCSVParser();
-#endif
+
   // create s3select request (must create a new one for each call as different start/end offsets require a new
   // S3Select request object
   std::optional<std::string> optionalErrorMessage;
@@ -221,15 +201,9 @@ std::shared_ptr<TupleSet> S3SelectPOp::s3Select(uint64_t startOffset, uint64_t e
         std::this_thread::sleep_for(std::chrono::milliseconds(rand() % variableSleepRetryTimeMS + minimumSleepRetryTimeMS));
       }
       std::chrono::steady_clock::time_point startConversionTime = std::chrono::steady_clock::now();
-#ifdef __AVX2__
-      try {
-        simdParser->parseChunk(reinterpret_cast<char *>(payload.data()), payload.size());
-      } catch (const std::runtime_error &err) {
-        ctx()->notifyError(err.what());
-      }
-#else
+
       s3Result_.insert(s3Result_.end(), payload.begin(), payload.end());
-#endif
+
       std::chrono::steady_clock::time_point stopConversionTime = std::chrono::steady_clock::now();
       auto conversionTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
               stopConversionTime - startConversionTime).count();
@@ -274,13 +248,6 @@ std::shared_ptr<TupleSet> S3SelectPOp::s3Select(uint64_t startOffset, uint64_t e
   // Sleep for 0.01sec on failure, no need to busy spin the entire time while waiting to try again
   uint64_t retrySleepTimeMS = 10;
   while (true) {
-#ifdef __AVX2__
-    // Create a new parser to use if the current one has results from the previous request
-    // We could alternatively reset the object but doing this is easier and the overhead is likely very minimal
-    if (simdParser->isInitialized()) {
-      simdParser = generateSIMDCSVParser();
-    }
-#endif
 
     std::chrono::steady_clock::time_point startTransferTime = std::chrono::steady_clock::now();
     auto selectObjectContentOutcome = awsClient_->getS3Client()->SelectObjectContent(selectObjectContentRequest);
@@ -299,37 +266,8 @@ std::shared_ptr<TupleSet> S3SelectPOp::s3Select(uint64_t startOffset, uint64_t e
   // messages to S3 (some internal AWS CPP SDK event most likely causes this).
   // This sometimes occurs when sending many S3 Select requests in parallel from our machine, though setting
   // maxConnections in AWSClient to a safe value mitigates this issue.
-  splitReqLock_->lock();
-  s3SelectScanStats_.numRequests++;
-  splitReqLock_->unlock();
 
-  std::chrono::steady_clock::time_point startConversionTime = std::chrono::steady_clock::now();
-  std::shared_ptr<TupleSet> tupleSet;
-#ifdef __AVX2__
-  try {
-    tupleSet = simdParser->outputCompletedTupleSet();
-  } catch (const std::runtime_error &err) {
-    ctx()->notifyError(err.what());
-  }
-#else
-  // If no results are returned then there is nothing to process
-  if (s3Result_.size() > 0) {std::shared_ptr<TupleSet> tupleSetV1 = parser_->parseCompletePayload(s3Result_.begin(), s3Result_.end());
-    auto tupleSet = TupleSet::create(tupleSetV1);
-  } else {
-    tupleSet = TupleSet::make2();
-  }
-#endif
-  std::chrono::steady_clock::time_point stopConversionTime = std::chrono::steady_clock::now();
-  auto conversionTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
-          stopConversionTime - startConversionTime).count();
-  splitReqLock_->lock();
-  s3SelectScanStats_.selectConvertTimeNS += conversionTime;
-  splitReqLock_->unlock();
-  if (optionalErrorMessage.has_value()) {
-    ctx()->notifyError(fmt::format("{}, {}", optionalErrorMessage.value(), name()));
-  }
-
-  return tupleSet;
+  return nullptr;
 }
 
 void S3SelectPOp::s3SelectIndividualReq(int reqNum, uint64_t startOffset, uint64_t endOffset) {

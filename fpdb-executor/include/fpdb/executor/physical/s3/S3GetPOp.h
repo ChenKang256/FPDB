@@ -8,10 +8,6 @@
 #include <fpdb/executor/physical/s3/S3SelectScanAbstractPOp.h>
 #include <aws/s3/model/GetObjectResult.h>
 
-#ifdef __AVX2__
-#include <fpdb/tuple/arrow/CSVToArrowSIMDChunkParser.h>
-#endif
-
 namespace fpdb::executor::physical::s3 {
 
 // This is for controlling the maximum number of GET requests converting data at the same time
@@ -54,15 +50,7 @@ private:
   // the methods will just be a bit different
   bool parallelTuplesetCreationSupported();
 
-#ifdef __AVX2__
-  void s3GetIndividualReq(int reqNum, const std::string &s3Object, uint64_t startOffset, uint64_t endOffset);
-  std::shared_ptr<TupleSet> s3GetParallelReqs(bool tempFixForAirmettleCSV150MB);
-#endif
-
   std::unordered_map<int, std::vector<char>> reqNumToAdditionalOutput_;
-#ifdef __AVX2__
-  std::unordered_map<int, std::shared_ptr<CSVToArrowSIMDChunkParser>> reqNumToParser_;
-#endif
 
 // caf inspect
 public:
