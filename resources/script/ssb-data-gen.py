@@ -15,12 +15,44 @@ if len(sys.argv) < 2:
     exit(1)
 
 sf = sys.argv[1]
+support_sf = ['1', '10', '20', '30', '100']
+
 num_partitions_dict = {
-    'part': 7,
-    'supplier': 1,
-    'customer': 4,
-    'date': 1,
-    'lineorder': 800
+    '1': {
+        'part': 1,
+        'supplier': 1,
+        'customer': 1,
+        'date': 1,
+        'lineorder': 32
+    },
+    '10': {
+        'part': 6,
+        'supplier': 1,
+        'customer': 2,
+        'date': 1,
+        'lineorder': 400
+    }, 
+    '20': {
+        'part': 7,
+        'supplier': 1,
+        'customer': 4,
+        'date': 1,
+        'lineorder': 800
+    }, 
+    '30': {
+        'part': 8,
+        'supplier': 1,
+        'customer': 6,
+        'date': 1,
+        'lineorder': 1200
+    }, 
+    '100': {
+        'part': 10,
+        'supplier': 1,
+        'customer': 20,
+        'date': 1,
+        'lineorder': 4001
+    }
 }
 
 
@@ -115,6 +147,10 @@ if platform.system() == "Darwin":
 else:
     split_func = "split"
 
+# check if supported
+if sf not in support_sf:
+    raise Exception("Unsupported scale factor {}, only support {}".format(sf, str(support_sf)))
+
 # create the directory to put data
 data_dir = 'data/ssb-sf' + str(sf)
 os.system('rm -rf {}'.format(data_dir))
@@ -129,7 +165,7 @@ print("Tables generated at {}".format(full_path))
 # format for each table
 for table in tables:
     print("Formatting " + table + "... ", end='', flush=True)
-    format_data_for_table(table, column_names_dict[table], num_partitions_dict[table])
+    format_data_for_table(table, column_names_dict[table], num_partitions_dict[sf][table])
     print('done')
 print("Tables formatted.")
 
