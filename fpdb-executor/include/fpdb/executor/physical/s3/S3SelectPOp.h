@@ -8,10 +8,6 @@
 #include <fpdb/executor/physical/s3/S3SelectScanAbstractPOp.h>
 #include <aws/s3/model/InputSerialization.h>
 
-#ifdef __AVX2__
-#include <fpdb/tuple/arrow/CSVToArrowSIMDChunkParser.h>
-#endif
-
 namespace fpdb::executor::physical::s3 {
 
 // This is for controlling the maximum number of Select requests converting data at the same time
@@ -42,9 +38,6 @@ public:
   std::string getTypeString() const override;
 
 private:
-#ifdef __AVX2__
-  std::shared_ptr<CSVToArrowSIMDChunkParser> generateSIMDCSVParser();
-#endif
   std::shared_ptr<S3CSVParser> generateCSVParser();
   Aws::Vector<unsigned char> s3Result_{};
 

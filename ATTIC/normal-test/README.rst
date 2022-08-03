@@ -1,5 +1,0 @@
-===========
-Normal Test
-===========
-
-Test suite

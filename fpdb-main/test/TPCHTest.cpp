@@ -7,7 +7,7 @@
 
 namespace fpdb::main::test {
 
-#define SKIP_SUITE false
+#define SKIP_SUITE true
 
 TEST_SUITE ("tpch-sf0.01-single_node-no-parallel" * doctest::skip(SKIP_SUITE)) {
 

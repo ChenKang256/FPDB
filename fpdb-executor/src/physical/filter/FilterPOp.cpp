@@ -41,6 +41,8 @@ void FilterPOp::onReceive(const Envelope &Envelope) {
   } else if (message.type() == MessageType::TUPLE) {
     auto tupleMessage = dynamic_cast<const TupleMessage &>(message);
     this->onTuple(tupleMessage);
+  } else if (message.type() == MessageType::DEBUG) {
+      cout << this->name() + " is alive!" << endl;
   } else if (message.type() == MessageType::COMPLETE) {
     if (*applicable_) {
       auto completeMessage = dynamic_cast<const CompleteMessage &>(message);

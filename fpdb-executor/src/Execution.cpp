@@ -72,9 +72,10 @@ void Execution::boot() {
       // Check if operator name starts with 'Filter_onScan'
       auto allowedOpTypes = {
         POpType::FILE_SCAN,
-        POpType::FILTER,
+        // POpType::FILTER,
         // POpType::SHUFFLE,
         // POpType::AGGREGATE
+        POpType::SEND
       };
       bool spawnOnRemote = op->spawnOnRemote() && find(allowedOpTypes.begin(), allowedOpTypes.end(), op->getType()) != allowedOpTypes.end();
       if(isDistributed_ && spawnOnRemote) {

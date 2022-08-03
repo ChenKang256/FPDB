@@ -43,6 +43,10 @@ private:
    * @param prePOp: prephysical op
    * @return a pair of connect physical ops (to producer) and current all (cumulative) physical ops
    */
+
+  pair<vector<shared_ptr<PhysicalOp>>, vector<shared_ptr<PhysicalOp>>>
+  transformDebug();
+
   pair<vector<shared_ptr<PhysicalOp>>, vector<shared_ptr<PhysicalOp>>>
   transformDfs(const shared_ptr<PrePhysicalOp> &prePOp);
 

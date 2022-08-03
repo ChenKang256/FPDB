@@ -36,6 +36,7 @@ public:
   void send(const std::shared_ptr<message::Message> &msg, const std::string &recipientId);
   void notifyComplete();
   void notifyError(const std::string &content);
+  void notifyDebug();
 
   void destroyActorHandles();
   [[nodiscard]] bool isComplete() const;

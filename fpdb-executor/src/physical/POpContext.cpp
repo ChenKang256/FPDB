@@ -6,6 +6,7 @@
 #include <fpdb/executor/cache/SegmentCacheActor.h>
 #include <fpdb/executor/message/Message.h>
 #include <fpdb/executor/message/CompleteMessage.h>
+#include <fpdb/executor/message/DebugMessage.h>
 #include <fpdb/executor/message/cache/LoadRequestMessage.h>
 #include <fpdb/executor/message/cache/CacheMetricsMessage.h>
 #include <spdlog/spdlog.h>
@@ -18,13 +19,13 @@ namespace fpdb::executor::physical {
 
 void POpContext::tell(std::shared_ptr<Message> &msg) {
   assert(this);
-
   if(complete_)
     notifyError(fmt::format("Cannot tell message to consumers, operator {} ('{}') is complete", this->operatorActor()->id(), this->operatorActor()->operator_()->name()));
 
   message::Envelope e(msg);
 
   // Send message to consumers
+  string str = this->operatorActor()->operator_()->name();
   for(const auto& consumer: this->operatorActor()->operator_()->consumers()){
     ::caf::actor actorHandle = operatorMap_.get(consumer).value().getActor();
     operatorActor_->anon_send(actorHandle, e);
@@ -104,6 +105,15 @@ void POpContext::notifyError(const std::string &content) {
   message::Envelope e(errorMsg);
   operatorActor_->anon_send(rootActor_, e);
   operatorActor_->on_exit();
+}
+
+void POpContext::notifyDebug() {
+  std::shared_ptr<Message> debugMsg = std::make_shared<DebugMessage>(operatorActor_->name());
+  message::Envelope e(debugMsg);
+  for(const auto& consumer: this->operatorActor()->operator_()->consumers()){
+    ::caf::actor actorHandle = operatorMap_.get(consumer).value().getActor();
+    operatorActor_->anon_send(actorHandle, e);
+  }
 }
 
 POpContext::POpContext(::caf::actor rootActor, ::caf::actor segmentCacheActor):

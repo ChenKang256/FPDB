@@ -141,6 +141,8 @@ void FileScanPOp::readAndSendTuples(const std::vector<std::string> &columnNames)
     // requestStoreSegmentsInCache(readTupleSet);
   }
 
+  ctx()->notifyDebug();
+
   std::shared_ptr<Message> message = std::make_shared<TupleMessage>(readTupleSet, this->name());
   ctx()->tell(message);
 }

@@ -1,5 +1,0 @@
-===========
-Normal SQL
-===========
-
-SQL parser

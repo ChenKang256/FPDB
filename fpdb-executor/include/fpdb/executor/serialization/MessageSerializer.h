@@ -11,6 +11,7 @@
 #include <fpdb/executor/message/CompleteMessage.h>
 #include <fpdb/executor/message/ErrorMessage.h>
 #include <fpdb/executor/message/ScanMessage.h>
+#include <fpdb/executor/message/DebugMessage.h>
 #include <fpdb/executor/message/TupleMessage.h>
 #include <fpdb/executor/message/TupleSetIndexMessage.h>
 #include <fpdb/executor/message/cache/LoadRequestMessage.h>
@@ -34,6 +35,7 @@ CAF_ADD_TYPE_ID(Message, (ErrorMessage))
 CAF_ADD_TYPE_ID(Message, (ScanMessage))
 CAF_ADD_TYPE_ID(Message, (TupleMessage))
 CAF_ADD_TYPE_ID(Message, (TupleSetIndexMessage))
+CAF_ADD_TYPE_ID(Message, (DebugMessage))
 // For the following cache messages, we have to implement `inspect` for concrete derived shared_ptr type one by one,
 // because SegmentCacheActor directly uses the concrete derived types rather than base type Message used by other actors
 CAF_ADD_TYPE_ID(Message, (LoadRequestMessage))
@@ -64,7 +66,8 @@ struct variant_inspector_traits<MessagePtr> {
           type_id_v<ErrorMessage>,
           type_id_v<ScanMessage>,
           type_id_v<TupleMessage>,
-          type_id_v<TupleSetIndexMessage>
+          type_id_v<TupleSetIndexMessage>,
+          type_id_v<DebugMessage>
   };
 
   // Returns which type in allowed_types corresponds to x.
@@ -85,6 +88,8 @@ struct variant_inspector_traits<MessagePtr> {
       return 6;
     else if (x->type() == MessageType::TUPLESET_INDEX)
       return 7;
+    else if (x->type() == MessageType::DEBUG)
+      return 8;
     else
       return -1;
   }
@@ -107,6 +112,8 @@ struct variant_inspector_traits<MessagePtr> {
         return f(dynamic_cast<TupleMessage &>(*x));
       case 7:
         return f(dynamic_cast<TupleSetIndexMessage &>(*x));
+      case 8:
+        return f(dynamic_cast<DebugMessage &>(*x));
       default: {
         none_t dummy;
         return f(dummy);
@@ -167,6 +174,11 @@ struct variant_inspector_traits<MessagePtr> {
       }
       case type_id_v<TupleSetIndexMessage>: {
         auto tmp = TupleSetIndexMessage{};
+        continuation(tmp);
+        return true;
+      }
+      case type_id_v<DebugMessage>: {
+        auto tmp = DebugMessage{};
         continuation(tmp);
         return true;
       }

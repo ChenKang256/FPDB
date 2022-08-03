@@ -33,6 +33,53 @@ POpActor::POpActor(::caf::actor_config &cfg, std::shared_ptr<PhysicalOp> opBehav
 	  },
 	  [=](const fpdb::executor::message::Envelope &msg) {
 
+		// if (msg.message().type() == MessageType::TUPLE) {
+		// 	cout << "TUPLE: " + self->operator_()->name() << endl;
+		// }
+
+		string rec_type;
+
+		switch (msg.message().type()) {
+			case MessageType::START : {
+				rec_type = "START";
+				break;
+			}
+			case MessageType::STOP : {
+				rec_type = "STOP";
+				break;
+			}
+			case MessageType::CONNECT : {
+				rec_type = "CONNECT";
+				break;
+			}
+			case MessageType::COMPLETE : {
+				rec_type = "COMPLETE";
+				break;
+			}
+			case MessageType::SCAN : {
+				rec_type = "SCAN";
+				break;
+			}
+			case MessageType::ERROR : {
+				rec_type = "ERROR";
+				break;
+			}
+			case MessageType::TUPLE : {
+				rec_type = "TUPLE";
+				break;
+			}
+			case MessageType::DEBUG : {
+				rec_type = "DEBUG";
+				break;
+			}
+			default: {
+				rec_type = "Other";
+			}
+		}
+
+		string str = "recipient: " + self->operator_()->name() + ", sender: " + msg.message().sender() + ", type: " + rec_type;
+		// cout << str << endl;
+
 		auto start = std::chrono::steady_clock::now();
 
     SPDLOG_DEBUG("Message received  |  recipient: '{}', sender: '{}', type: '{}'",
@@ -71,6 +118,8 @@ POpActor::POpActor(::caf::actor_config &cfg, std::shared_ptr<PhysicalOp> opBehav
 
 		  self->overriddenMessageSender_ = std::nullopt;
 
+		} else if (msg.message().type() == MessageType::DEBUG) {
+			self->operator_()->onReceive(msg);
 		} else if (msg.message().type() == MessageType::STOP) {
 		  self->running_ = false;
 

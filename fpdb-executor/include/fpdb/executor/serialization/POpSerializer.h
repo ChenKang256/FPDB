@@ -23,6 +23,8 @@
 #include <fpdb/executor/physical/shuffle/ShufflePOp.h>
 #include <fpdb/executor/physical/sort/SortPOp.h>
 #include <fpdb/executor/physical/split/SplitPOp.h>
+#include <fpdb/executor/physical/test/ReceivePOp.h>
+#include <fpdb/executor/physical/test/SendPOp.h>
 #include <fpdb/tuple/serialization/ArrowSerializer.h>
 #include <fpdb/caf/CAFUtil.h>
 
@@ -49,6 +51,8 @@ CAF_ADD_TYPE_ID(POp, (fpdb::executor::physical::s3::S3SelectPOp))
 CAF_ADD_TYPE_ID(POp, (shuffle::ShufflePOp))
 CAF_ADD_TYPE_ID(POp, (sort::SortPOp))
 CAF_ADD_TYPE_ID(POp, (split::SplitPOp))
+CAF_ADD_TYPE_ID(POp, (test::ReceivePOp))
+CAF_ADD_TYPE_ID(POp, (test::SendPOp))
 CAF_ADD_TYPE_ID(POp, (caf::spawn_options))
 CAF_END_TYPE_ID_BLOCK(POp)
 
@@ -78,7 +82,9 @@ struct variant_inspector_traits<POpPtr> {
           type_id_v<fpdb::executor::physical::s3::S3SelectPOp>,
           type_id_v<shuffle::ShufflePOp>,
           type_id_v<sort::SortPOp>,
-          type_id_v<split::SplitPOp>
+          type_id_v<split::SplitPOp>,
+          type_id_v<test::ReceivePOp>,
+          type_id_v<test::SendPOp>
   };
 
   // Returns which type in allowed_types corresponds to x.
@@ -119,6 +125,10 @@ struct variant_inspector_traits<POpPtr> {
       return 16;
     else if (x->getType() == POpType::SPLIT)
       return 17;
+    else if (x->getType() == POpType::RECEIVE)
+      return 18;
+    else if (x->getType() == POpType::SEND)
+      return 19;
     else
       return -1;
   }
@@ -161,6 +171,10 @@ struct variant_inspector_traits<POpPtr> {
         return f(dynamic_cast<sort::SortPOp &>(*x));
       case 17:
         return f(dynamic_cast<split::SplitPOp &>(*x));
+      case 18:
+        return f(dynamic_cast<test::ReceivePOp &>(*x));
+      case 19:
+        return f(dynamic_cast<test::SendPOp &>(*x));
       default: {
         none_t dummy;
         return f(dummy);
@@ -271,6 +285,16 @@ struct variant_inspector_traits<POpPtr> {
       }
       case type_id_v<split::SplitPOp>: {
         auto tmp = split::SplitPOp{};
+        continuation(tmp);
+        return true;
+      }
+      case type_id_v<test::ReceivePOp>: {
+        auto tmp = test::ReceivePOp{};
+        continuation(tmp);
+        return true;
+      }
+      case type_id_v<test::SendPOp>: {
+        auto tmp = test::SendPOp{};
         continuation(tmp);
         return true;
       }

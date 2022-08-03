@@ -22,6 +22,8 @@
 #include <fpdb/executor/physical/shuffle/ShufflePOp.h>
 #include <fpdb/executor/physical/split/SplitPOp.h>
 #include <fpdb/executor/physical/collate/CollatePOp.h>
+#include <fpdb/executor/physical/test/ReceivePOp.h>
+#include <fpdb/executor/physical/test/SendPOp.h>
 #include <fpdb/expression/gandiva/Column.h>
 
 namespace fpdb::executor::physical {
@@ -39,7 +41,8 @@ PrePToPTransformer::PrePToPTransformer(const shared_ptr<PrePhysicalPlan> &prePhy
 
 shared_ptr<PhysicalPlan> PrePToPTransformer::transform() {
   // transform from root in dfs
-  auto rootTransRes = transformDfs(prePhysicalPlan_->getRootOp());
+  // auto rootTransRes = transformDfs(prePhysicalPlan_->getRootOp());
+  auto rootTransRes = transformDebug();
   auto upConnPOps = rootTransRes.first;
   auto allPOps = rootTransRes.second;
 
@@ -50,8 +53,29 @@ shared_ptr<PhysicalPlan> PrePToPTransformer::transform() {
           0);
   allPOps.emplace_back(collatePOp);
   connectManyToOne(upConnPOps, collatePOp);
-
   return make_shared<PhysicalPlan>(allPOps);
+}
+
+pair<vector<shared_ptr<PhysicalOp>>, vector<shared_ptr<PhysicalOp>>>
+PrePToPTransformer::transformDebug() {
+  vector<shared_ptr<PhysicalOp>> selfPops;
+  vector<shared_ptr<PhysicalOp>> allPops;
+  std::vector<std::string> columnNames;
+  for (int i = 0; i < parallelDegree_; i++) {
+    const auto &receivePOp = make_shared<test::ReceivePOp>(fmt::format("Receive{}[{}]-{}", "", 114514, i),
+                                                          columnNames,
+                                                          0);
+    const auto &sendPOp = make_shared<test::SendPOp>(fmt::format("Send{}[{}]-{}", "_onRemote", 1919810, i),
+                                                          columnNames,
+                                                          0);
+    receivePOp->setSpawnOnRemote(false);
+    sendPOp->setSpawnOnRemote(true);
+    receivePOp->consume(sendPOp);
+    sendPOp->produce(receivePOp);
+    selfPops.emplace_back(receivePOp);
+    allPops.emplace_back(sendPOp), allPops.emplace_back(receivePOp);
+  }
+  return make_pair(selfPops, allPops);
 }
 
 pair<vector<shared_ptr<PhysicalOp>>, vector<shared_ptr<PhysicalOp>>>
