@@ -3,6 +3,7 @@
 //
 
 #include <fpdb/executor/Execution.h>
+#include <fpdb/executor/ModeCtrl.h>
 #include <fpdb/executor/physical/POpContext.h>
 #include <fpdb/executor/physical/POpDirectoryEntry.h>
 #include <fpdb/executor/physical/POpConnection.h>
@@ -42,6 +43,7 @@ shared_ptr<TupleSet> Execution::execute() {
 
 void Execution::boot() {
   startTime_ = chrono::steady_clock::now();
+  ModeCtrl ctrl(true);//controlled by external file
 
   // Tell segment cache actor that new query comes
   if (segmentCacheActor_) {
@@ -72,12 +74,13 @@ void Execution::boot() {
       // Check if operator name starts with 'Filter_onScan'
       auto allowedOpTypes = {
         POpType::FILE_SCAN,
-        // POpType::FILTER,
+        POpType::FILTER,
         // POpType::SHUFFLE,
-        // POpType::AGGREGATE
+        POpType::AGGREGATE,
         POpType::SEND
       };
-      bool spawnOnRemote = op->spawnOnRemote() && find(allowedOpTypes.begin(), allowedOpTypes.end(), op->getType()) != allowedOpTypes.end();
+      bool spawnOnRemote = ctrl.canPushdown(op->getType());
+      // bool spawnOnRemote = op->spawnOnRemote() && find(allowedOpTypes.begin(), allowedOpTypes.end(), op->getType()) != allowedOpTypes.end();
       if(isDistributed_ && spawnOnRemote) {
         element.second.setActorHandle(remoteSpawn(op, op->getNodeId()));
       } else {

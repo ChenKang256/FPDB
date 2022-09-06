@@ -14,8 +14,8 @@ add_library(fpdb-executor STATIC
         src/message/ConnectMessage.cpp include/fpdb/executor/message/ConnectMessage.h
         src/message/CompleteMessage.cpp include/fpdb/executor/message/CompleteMessage.h
         src/message/TupleMessage.cpp include/fpdb/executor/message/TupleMessage.h
-        src/message/ScanMessage.cpp include/fpdb/executor/message/ScanMessage.h
         src/message/DebugMessage.cpp include/fpdb/executor/message/DebugMessage.h
+        src/message/ScanMessage.cpp include/fpdb/executor/message/ScanMessage.h
         src/message/TupleSetIndexMessage.cpp include/fpdb/executor/message/TupleSetIndexMessage.h
         src/message/ErrorMessage.cpp include/fpdb/executor/message/ErrorMessage.h
         src/message/cache/CacheMetricsMessage.cpp include/fpdb/executor/message/cache/CacheMetricsMessage.h
@@ -59,6 +59,8 @@ add_library(fpdb-executor STATIC
         # src/physical/file/FileScanPOp2.cpp include/fpdb/executor/physical/file/FileScanPOp2.h
         # src/physical/file/FileScanKernel.cpp include/fpdb/executor/physical/file/FileScanKernel.h
         src/physical/filter/FilterPOp.cpp include/fpdb/executor/physical/filter/FilterPOp.h
+        src/physical/test/ReceivePOp.cpp include/fpdb/executor/physical/test/ReceivePOp.h
+        src/physical/test/SendPOp.cpp include/fpdb/executor/physical/test/SendPOp.h
         src/physical/group/GroupPOp.cpp include/fpdb/executor/physical/group/GroupPOp.h
         src/physical/group/GroupKernel.cpp include/fpdb/executor/physical/group/GroupKernel.h
         src/physical/join/hashjoin/HashJoinBuildPOp.cpp include/fpdb/executor/physical/join/hashjoin/HashJoinBuildPOp.h
@@ -81,8 +83,6 @@ add_library(fpdb-executor STATIC
         src/physical/shuffle/ShuffleKernel.cpp include/fpdb/executor/physical/shuffle/ShuffleKernel.h
         src/physical/shuffle/RecordBatchShuffler.cpp include/fpdb/executor/physical/shuffle/RecordBatchShuffler.h
         src/physical/split/SplitPOp.cpp include/fpdb/executor/physical/split/SplitPOp.h
-        src/physical/test/ReceivePOp.cpp include/fpdb/executor/physical/test/ReceivePOp.h
-        src/physical/test/SendPOp.cpp include/fpdb/executor/physical/test/SendPOp.h
         src/physical/s3/S3GetPOp.cpp include/fpdb/executor/physical/s3/S3GetPOp.h
         src/physical/s3/S3SelectPOp.cpp include/fpdb/executor/physical/s3/S3SelectPOp.h
         src/physical/s3/S3SelectScanAbstractPOp.cpp include/fpdb/executor/physical/s3/S3SelectScanAbstractPOp.h
@@ -102,7 +102,10 @@ add_library(fpdb-executor STATIC
         include/fpdb/executor/serialization/HashJoinProbeAbstractKernelSerializer.h
 #        executor
         src/Executor.cpp include/fpdb/executor/Executor.h
-        src/Execution.cpp include/fpdb/executor/Execution.h)
+        src/Execution.cpp include/fpdb/executor/Execution.h
+#        mode controller
+        src/ModeCtrl.cpp include/fpdb/executor/ModeCtrl.h
+        )
 
 target_include_directories(fpdb-executor PUBLIC include)
 
