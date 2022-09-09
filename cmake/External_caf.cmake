@@ -2,7 +2,7 @@
 
 # This repo is forked from CAF repo, with support added for remote spawning actors with spawn_options
 # A pull request will be made, and after it's get merged I will switch back to CAF repo
-set(CAF_VERSION "msater")
+set(CAF_VERSION "master")
 set(CAF_GIT_URL "git@github.com:thunderZH963/CAF-on-SmartNIC.git")
 
 

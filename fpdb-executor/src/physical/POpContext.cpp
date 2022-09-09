@@ -108,12 +108,12 @@ void POpContext::notifyError(const std::string &content) {
 }
 
 void POpContext::notifyDebug() {
-  std::shared_ptr<Message> debugMsg = std::make_shared<DebugMessage>(operatorActor_->name());
-  message::Envelope e(debugMsg);
-  for(const auto& consumer: this->operatorActor()->operator_()->consumers()){
-    ::caf::actor actorHandle = operatorMap_.get(consumer).value().getActor();
-    operatorActor_->anon_send(actorHandle, e);
-  }
+  // std::shared_ptr<Message> debugMsg = std::make_shared<DebugMessage>(operatorActor_->name());
+  // message::Envelope e(debugMsg);
+  // for(const auto& consumer: this->operatorActor()->operator_()->consumers()){
+  //   ::caf::actor actorHandle = operatorMap_.get(consumer).value().getActor();
+  //   operatorActor_->anon_send(actorHandle, e);
+  // }
 }
 
 POpContext::POpContext(::caf::actor rootActor, ::caf::actor segmentCacheActor):

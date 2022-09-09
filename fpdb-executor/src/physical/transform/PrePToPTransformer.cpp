@@ -41,8 +41,8 @@ PrePToPTransformer::PrePToPTransformer(const shared_ptr<PrePhysicalPlan> &prePhy
 
 shared_ptr<PhysicalPlan> PrePToPTransformer::transform() {
   // transform from root in dfs
-  // auto rootTransRes = transformDfs(prePhysicalPlan_->getRootOp());
-  auto rootTransRes = transformDebug();
+  auto rootTransRes = transformDfs(prePhysicalPlan_->getRootOp());
+  // auto rootTransRes = transformDebug();
   auto upConnPOps = rootTransRes.first;
   auto allPOps = rootTransRes.second;
 
